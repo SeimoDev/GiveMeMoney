@@ -17,6 +17,7 @@ export async function onRequestPost(context) {
     const origin = new URL(request.url).origin;
 
     const session = await stripe.checkout.sessions.create({
+      ui_mode: 'embedded',
       payment_method_types: ['card', 'alipay'],
       line_items: [
         {
@@ -29,11 +30,10 @@ export async function onRequestPost(context) {
         },
       ],
       mode: 'payment',
-      success_url: `${origin}?status=success&amount=${amount}`,
-      cancel_url: `${origin}?status=cancel`,
+      return_url: `${origin}?status=success&amount=${amount}`,
     });
 
-    return Response.json({ url: session.url });
+    return Response.json({ clientSecret: session.client_secret });
   } catch (err) {
     return Response.json(
       { error: err.message, type: err.type || 'unknown' },

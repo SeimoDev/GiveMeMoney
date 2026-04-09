@@ -138,6 +138,18 @@ h1 {
   }
 }
 
+.checkout-wrapper {
+  max-width: 500px;
+  width: 100%;
+}
+
+.btn.back {
+  width: auto;
+  padding: 10px 20px;
+  font-size: 0.95rem;
+  margin-bottom: 20px;
+}
+
 @media (max-width: 480px) {
   .card {
     padding: 36px 24px;

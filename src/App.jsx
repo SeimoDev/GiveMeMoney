@@ -1,7 +1,12 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
+import { loadStripe } from '@stripe/stripe-js';
+import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import './App.css';
 
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
 function App() {
+  const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(false);
   const [{ status, paidAmount }] = useState(() => {
     const params = new URLSearchParams(window.location.search);
@@ -16,21 +21,19 @@ function App() {
     Math.round((Math.random() * (100 - 3.5) + 3.5) * 100) / 100
   );
 
-  const handlePay = async () => {
+  const fetchClientSecret = useCallback(async () => {
+    const res = await fetch('/api/checkout', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ amount: amountRef.current }),
+    });
+    const data = await res.json();
+    return data.clientSecret;
+  }, []);
+
+  const handlePay = () => {
     setLoading(true);
-    try {
-      const res = await fetch('/api/checkout', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: amountRef.current }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } catch {
-      setLoading(false);
-    }
+    setShowCheckout(true);
   };
 
   if (currentStatus === 'success') {
@@ -64,6 +67,22 @@ function App() {
           <button className="btn" onClick={() => setStatus(null)}>
             Try Again
           </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (showCheckout) {
+    return (
+      <div className="container">
+        <div className="checkout-wrapper">
+          <button className="btn back" onClick={() => { setShowCheckout(false); setLoading(false); }}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            返回
+          </button>
+          <EmbeddedCheckoutProvider stripe={stripePromise} options={{ fetchClientSecret }}>
+            <EmbeddedCheckout />
+          </EmbeddedCheckoutProvider>
         </div>
       </div>
     );
