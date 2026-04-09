@@ -5,7 +5,6 @@ export async function onRequestPost(context) {
 
   try {
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
-      apiVersion: '2025-03-31.basil',
       httpClient: Stripe.createFetchHttpClient(),
     });
 
@@ -18,7 +17,10 @@ export async function onRequestPost(context) {
     const origin = new URL(request.url).origin;
 
     const session = await stripe.checkout.sessions.create({
-      automatic_payment_methods: { enabled: true },
+      payment_method_types: ['card', 'alipay', 'wechat_pay'],
+      payment_method_options: {
+        wechat_pay: { client: 'web' },
+      },
       line_items: [
         {
           price_data: {
