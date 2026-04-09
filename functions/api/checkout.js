@@ -16,7 +16,7 @@ export async function onRequestPost(context) {
   const origin = new URL(request.url).origin;
 
   const session = await stripe.checkout.sessions.create({
-    payment_method_types: ['card'],
+    automatic_payment_methods: { enabled: true },
     line_items: [
       {
         price_data: {
