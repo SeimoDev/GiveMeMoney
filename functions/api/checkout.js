@@ -17,10 +17,7 @@ export async function onRequestPost(context) {
     const origin = new URL(request.url).origin;
 
     const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card', 'alipay', 'wechat_pay'],
-      payment_method_options: {
-        wechat_pay: { client: 'web' },
-      },
+      payment_method_types: ['card', 'alipay'],
       line_items: [
         {
           price_data: {
