@@ -17,7 +17,7 @@ export async function onRequestPost(context) {
     const origin = new URL(request.url).origin;
 
     const session = await stripe.checkout.sessions.create({
-      ui_mode: 'embedded',
+      ui_mode: 'embedded_page',
       payment_method_types: ['card', 'alipay'],
       line_items: [
         {
