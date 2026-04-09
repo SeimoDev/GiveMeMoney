@@ -5,6 +5,7 @@ export async function onRequestPost(context) {
 
   try {
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
+      apiVersion: '2025-03-31.basil',
       httpClient: Stripe.createFetchHttpClient(),
     });
 
