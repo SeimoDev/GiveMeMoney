@@ -3,16 +3,14 @@ import './App.css';
 
 function App() {
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState(() => {
+  const [{ status, paidAmount }] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     const s = params.get('status');
+    const a = params.get('amount');
     if (s) window.history.replaceState({}, '', '/');
-    return s;
+    return { status: s, paidAmount: a };
   });
-  const [paidAmount] = useState(() => {
-    const params = new URLSearchParams(window.location.search);
-    return params.get('amount');
-  });
+  const [currentStatus, setStatus] = useState(status);
 
   const amountRef = useRef(
     Math.round((Math.random() * (100 - 3.5) + 3.5) * 100) / 100
@@ -35,7 +33,7 @@ function App() {
     }
   };
 
-  if (status === 'success') {
+  if (currentStatus === 'success') {
     return (
       <div className="container">
         <div className="card">
@@ -54,7 +52,7 @@ function App() {
     );
   }
 
-  if (status === 'cancel') {
+  if (currentStatus === 'cancel') {
     return (
       <div className="container">
         <div className="card">
