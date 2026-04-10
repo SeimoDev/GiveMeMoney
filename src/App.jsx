@@ -1,9 +1,46 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { EmbeddedCheckoutProvider, EmbeddedCheckout } from '@stripe/react-stripe-js';
 import './App.css';
 
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
+
+function useGlow() {
+  const glowRef = useRef(null);
+
+  useEffect(() => {
+    const el = glowRef.current;
+    if (!el) return;
+
+    const handleMove = (e) => {
+      const rect = el.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      el.style.setProperty('--glow-x', `${x}px`);
+      el.style.setProperty('--glow-y', `${y}px`);
+
+      // subtle 3D tilt
+      const cx = rect.width / 2;
+      const cy = rect.height / 2;
+      const rotateY = ((x - cx) / cx) * 4;
+      const rotateX = ((cy - y) / cy) * 4;
+      el.style.transform = `perspective(600px) rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+    };
+
+    const handleLeave = () => {
+      el.style.transform = 'perspective(600px) rotateX(0deg) rotateY(0deg)';
+    };
+
+    el.addEventListener('mousemove', handleMove);
+    el.addEventListener('mouseleave', handleLeave);
+    return () => {
+      el.removeEventListener('mousemove', handleMove);
+      el.removeEventListener('mouseleave', handleLeave);
+    };
+  }, []);
+
+  return glowRef;
+}
 
 function App() {
   const [showCheckout, setShowCheckout] = useState(false);
@@ -30,6 +67,8 @@ function App() {
     const data = await res.json();
     return data.clientSecret;
   }, []);
+
+  const cardRef = useGlow();
 
   const handlePay = () => {
     setLoading(true);
@@ -90,7 +129,7 @@ function App() {
 
   return (
     <div className="container">
-      <div className="card">
+      <div className="card glow-card" ref={cardRef}>
         <h1>Give Me Money</h1>
         <p className="subtitle">How much? You'll find out after you click.</p>
         <button className="btn pay" onClick={handlePay} disabled={loading}>

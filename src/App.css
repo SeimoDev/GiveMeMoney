@@ -2,6 +2,11 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20"><circle cx="10" cy="10" r="8" fill="none" stroke="%23999" stroke-width="1.5"/><circle cx="10" cy="10" r="2" fill="%23999"/></svg>') 10 10, auto;
+}
+
+a, button, [role="button"] {
+  cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10" fill="none" stroke="%23555" stroke-width="1.5"/><circle cx="12" cy="12" r="3" fill="%23555"/><line x1="12" y1="2" x2="12" y2="6" stroke="%23555" stroke-width="1.5"/><line x1="12" y1="18" x2="12" y2="22" stroke="%23555" stroke-width="1.5"/><line x1="2" y1="12" x2="6" y2="12" stroke="%23555" stroke-width="1.5"/><line x1="18" y1="12" x2="22" y2="12" stroke="%23555" stroke-width="1.5"/></svg>') 12 12, pointer;
 }
 
 body {
@@ -29,6 +34,37 @@ body {
   box-shadow:
     8px 8px 16px #b8bec7,
     -8px -8px 16px #ffffff;
+  transition: transform 0.15s ease-out;
+}
+
+.glow-card {
+  --glow-x: 50%;
+  --glow-y: 50%;
+  position: relative;
+  overflow: hidden;
+}
+
+.glow-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 24px;
+  background: radial-gradient(
+    300px circle at var(--glow-x) var(--glow-y),
+    rgba(255, 255, 255, 0.35),
+    transparent 60%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+}
+
+.glow-card:hover::before {
+  opacity: 1;
 }
 
 h1 {
@@ -64,6 +100,30 @@ h1 {
     6px 6px 12px #b8bec7,
     -6px -6px 12px #ffffff;
   min-height: 60px;
+}
+
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.4);
+  transform: translate(-50%, -50%);
+  transition: width 0.4s ease, height 0.4s ease;
+  pointer-events: none;
+}
+
+.btn:hover:not(:disabled)::after {
+  width: 200%;
+  height: 200%;
 }
 
 .btn:hover:not(:disabled) {
@@ -159,7 +219,8 @@ h1 {
   color: #555;
   box-shadow:
     2px 2px 4px #b8bec7,
-    -2px -2px 4px #ffffff;
+    -2px -2px 4px #ffffff,
+    0 0 16px rgba(255, 255, 255, 0.5);
 }
 
 .github-link:active {
