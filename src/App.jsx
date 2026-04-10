@@ -47,17 +47,30 @@ function useDent(ref) {
     const el = ref.current;
     if (!el) return;
 
+    const BASE_R = 16;
+    const MAX_EXTRA = 28;
+
     const handleMove = (e) => {
       const rect = el.getBoundingClientRect();
       const x = e.clientX - rect.left;
       const y = e.clientY - rect.top;
+      const px = x / rect.width;
+      const py = y / rect.height;
+
       el.style.setProperty('--dent-x', `${x}px`);
       el.style.setProperty('--dent-y', `${y}px`);
       el.style.setProperty('--dent-opacity', '1');
+
+      // border distortion: corner closer to cursor warps more
+      const dist = (cx, cy) => Math.max(0, 1 - Math.sqrt((px - cx) ** 2 + (py - cy) ** 2));
+      const r = (cx, cy) => BASE_R + dist(cx, cy) * MAX_EXTRA;
+
+      el.style.borderRadius = `${r(0, 0)}px ${r(1, 0)}px ${r(1, 1)}px ${r(0, 1)}px`;
     };
 
     const handleLeave = () => {
       el.style.setProperty('--dent-opacity', '0');
+      el.style.borderRadius = `${BASE_R}px`;
     };
 
     el.addEventListener('mousemove', handleMove);
