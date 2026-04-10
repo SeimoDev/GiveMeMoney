@@ -42,6 +42,33 @@ function useGlow() {
   return glowRef;
 }
 
+function useDent(ref) {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+
+    const handleMove = (e) => {
+      const rect = el.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      el.style.setProperty('--dent-x', `${x}px`);
+      el.style.setProperty('--dent-y', `${y}px`);
+      el.style.setProperty('--dent-opacity', '1');
+    };
+
+    const handleLeave = () => {
+      el.style.setProperty('--dent-opacity', '0');
+    };
+
+    el.addEventListener('mousemove', handleMove);
+    el.addEventListener('mouseleave', handleLeave);
+    return () => {
+      el.removeEventListener('mousemove', handleMove);
+      el.removeEventListener('mouseleave', handleLeave);
+    };
+  }, [ref]);
+}
+
 function App() {
   const [showCheckout, setShowCheckout] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -69,6 +96,8 @@ function App() {
   }, []);
 
   const cardRef = useGlow();
+  const payBtnRef = useRef(null);
+  useDent(payBtnRef);
 
   const handlePay = () => {
     setLoading(true);
@@ -132,7 +161,7 @@ function App() {
       <div className="card glow-card" ref={cardRef}>
         <h1>Give Me Money</h1>
         <p className="subtitle">How much? You'll find out after you click.</p>
-        <button className="btn pay" onClick={handlePay} disabled={loading}>
+        <button className="btn pay dent-btn" ref={payBtnRef} onClick={handlePay} disabled={loading}>
           {loading ? (
             <span className="spinner" />
           ) : (
