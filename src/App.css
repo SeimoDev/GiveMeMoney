@@ -108,8 +108,7 @@ h1 {
   --dent-y: 50%;
   --dent-opacity: 0;
   position: relative;
-  overflow: hidden;
-  transition: all 0.2s ease, border-radius 0.12s ease-out;
+  overflow: visible;
 }
 
 .dent-btn::before {

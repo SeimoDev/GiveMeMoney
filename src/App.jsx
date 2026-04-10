@@ -47,30 +47,67 @@ function useDent(ref) {
     const el = ref.current;
     if (!el) return;
 
-    const BASE_R = 16;
-    const MAX_EXTRA = 28;
+    const R = 16;           // corner radius
+    const PULL = 14;         // max inward pull (px)
+    const INFLUENCE = 120;   // cursor influence radius (px)
+    const PER_SIDE = 14;     // sample points per straight edge
+    const PER_CORNER = 6;    // sample points per corner arc
+
+    function buildOutline(w, h) {
+      const pts = [];
+      const arc = (cx, cy, from, to) => {
+        for (let i = 0; i <= PER_CORNER; i++) {
+          const a = from + (to - from) * (i / PER_CORNER);
+          pts.push([cx + R * Math.cos(a), cy + R * Math.sin(a)]);
+        }
+      };
+      const edge = (x1, y1, x2, y2) => {
+        for (let i = 1; i < PER_SIDE; i++) {
+          const t = i / PER_SIDE;
+          pts.push([x1 + (x2 - x1) * t, y1 + (y2 - y1) * t]);
+        }
+      };
+      // clockwise: TL corner → top edge → TR corner → right edge → BR corner → bottom edge → BL corner → left edge
+      arc(R, R, Math.PI, Math.PI * 1.5);
+      edge(R, 0, w - R, 0);
+      arc(w - R, R, Math.PI * 1.5, Math.PI * 2);
+      edge(w, R, w, h - R);
+      arc(w - R, h - R, 0, Math.PI * 0.5);
+      edge(w - R, h, R, h);
+      arc(R, h - R, Math.PI * 0.5, Math.PI);
+      edge(0, h - R, 0, R);
+      return pts;
+    }
 
     const handleMove = (e) => {
       const rect = el.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      const px = x / rect.width;
-      const py = y / rect.height;
+      const mx = e.clientX - rect.left;
+      const my = e.clientY - rect.top;
+      const w = rect.width;
+      const h = rect.height;
 
-      el.style.setProperty('--dent-x', `${x}px`);
-      el.style.setProperty('--dent-y', `${y}px`);
+      el.style.setProperty('--dent-x', `${mx}px`);
+      el.style.setProperty('--dent-y', `${my}px`);
       el.style.setProperty('--dent-opacity', '1');
 
-      // border distortion: corner closer to cursor warps more
-      const dist = (cx, cy) => Math.max(0, 1 - Math.sqrt((px - cx) ** 2 + (py - cy) ** 2));
-      const r = (cx, cy) => BASE_R + dist(cx, cy) * MAX_EXTRA;
+      const outline = buildOutline(w, h);
+      const deformed = outline.map(([px, py]) => {
+        const dx = mx - px;
+        const dy = my - py;
+        const dist = Math.sqrt(dx * dx + dy * dy);
+        if (dist > INFLUENCE || dist < 1) return [px, py];
+        const strength = PULL * ((1 - dist / INFLUENCE) ** 2);
+        const angle = Math.atan2(dy, dx);
+        return [px + Math.cos(angle) * strength, py + Math.sin(angle) * strength];
+      });
 
-      el.style.borderRadius = `${r(0, 0)}px ${r(1, 0)}px ${r(1, 1)}px ${r(0, 1)}px`;
+      const poly = deformed.map(([x, y]) => `${x}px ${y}px`).join(',');
+      el.style.clipPath = `polygon(${poly})`;
     };
 
     const handleLeave = () => {
       el.style.setProperty('--dent-opacity', '0');
-      el.style.borderRadius = `${BASE_R}px`;
+      el.style.clipPath = '';
     };
 
     el.addEventListener('mousemove', handleMove);
